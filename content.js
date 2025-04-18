@@ -27,30 +27,14 @@ document.addEventListener("mouseover", (e) => {
     popover.innerHTML = "";
 
     new QRCode(popover, {
-      width: 256,
-      height: 256,
+      width: 128,
+      height: 128,
       text: currentAnchor
     });
 
     const rect = target.getBoundingClientRect();
-    const popoverWidth = 256; // QRコードの幅
-    const popoverHeight = 256; // QRコードの高さ
-
-    let left = rect.right + window.scrollX + 10;
-    let top = rect.top + window.scrollY;
-
-    // ウィンドウの右端を超える場合
-    if (left + popoverWidth > window.innerWidth) {
-      left = rect.left + window.scrollX - popoverWidth - 10;
-    }
-
-    // ウィンドウの下端を超える場合
-    if (top + popoverHeight > window.innerHeight) {
-      top = window.innerHeight - popoverHeight - 10;
-    }
-
-    popover.style.left = `${left}px`;
-    popover.style.top = `${top}px`;
+    popover.style.left = `${rect.right + window.scrollX + 10}px`;
+    popover.style.top = `${rect.top + window.scrollY}px`;
     popover.style.display = "block";
   }
 });
