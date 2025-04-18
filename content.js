@@ -27,8 +27,8 @@ document.addEventListener("mouseover", (e) => {
     popover.innerHTML = "";
 
     new QRCode(popover, {
-      width: 128,
-      height: 128,
+      width: 256,
+      height: 256,
       text: currentAnchor
     });
 
