@@ -6,7 +6,8 @@
     "permissions": [
       "contextMenus",
       "storage",
-      "scripting"
+      "scripting",
+      "tabs"
     ],
     "host_permissions": [
       "<all_urls>"
@@ -20,6 +21,7 @@
         "js": ["qr-lib.min.js", "content.js"],
         "css": ["style.css"]
       }
-    ]
+    ],
+    "options_page": "settings.html"
   }
   

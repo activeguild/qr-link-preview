@@ -6,20 +6,8 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 
     chrome.contextMenus.create({
-      id: "qr-size-small",
-      title: "QRコードサイズ: 小 (128px)",
-      contexts: ["all"]
-    });
-
-    chrome.contextMenus.create({
-      id: "qr-size-medium",
-      title: "QRコードサイズ: 中 (192px)",
-      contexts: ["all"]
-    });
-
-    chrome.contextMenus.create({
-      id: "qr-size-large",
-      title: "QRコードサイズ: 大 (256px)",
+      id: "qr-settings",
+      title: "QRコード設定",
       contexts: ["all"]
     });
   
@@ -39,29 +27,8 @@ chrome.runtime.onInstalled.addListener(() => {
         },
         args: [newState]
       });
-    } else if (info.menuItemId.startsWith("qr-size-")) {
-      let newSize;
-      switch (info.menuItemId) {
-        case "qr-size-small":
-          newSize = 128;
-          break;
-        case "qr-size-medium":
-          newSize = 192;
-          break;
-        case "qr-size-large":
-          newSize = 256;
-          break;
-      }
-      
-      await chrome.storage.sync.set({ qrSize: newSize });
-      
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: (size) => {
-          window.dispatchEvent(new CustomEvent("qr-size-change", { detail: size }));
-        },
-        args: [newSize]
-      });
+    } else if (info.menuItemId === "qr-settings") {
+      chrome.runtime.openOptionsPage();
     }
   });
   
