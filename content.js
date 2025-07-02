@@ -4,9 +4,11 @@ document.body.appendChild(popover);
 
 let currentAnchor = null;
 let isEnabled = true;
+let qrSize = 192; // Increased default size from 128 to 192
 
-chrome.storage.sync.get("qrEnabled", (data) => {
+chrome.storage.sync.get(["qrEnabled", "qrSize"], (data) => {
   isEnabled = data.qrEnabled ?? true;
+  qrSize = data.qrSize ?? 192;
 });
 
 window.addEventListener("qr-toggle", (e) => {
@@ -17,6 +19,58 @@ window.addEventListener("qr-toggle", (e) => {
   }
 });
 
+window.addEventListener("qr-size-change", (e) => {
+  qrSize = e.detail;
+});
+
+function getBestPosition(rect, popoverWidth, popoverHeight) {
+  const margin = 10;
+  const viewport = {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    scrollX: window.scrollX,
+    scrollY: window.scrollY
+  };
+
+  // Try right position (default)
+  if (rect.right + margin + popoverWidth <= viewport.width + viewport.scrollX) {
+    return {
+      left: rect.right + viewport.scrollX + margin,
+      top: rect.top + viewport.scrollY
+    };
+  }
+
+  // Try left position
+  if (rect.left - margin - popoverWidth >= viewport.scrollX) {
+    return {
+      left: rect.left + viewport.scrollX - margin - popoverWidth,
+      top: rect.top + viewport.scrollY
+    };
+  }
+
+  // Try bottom position
+  if (rect.bottom + margin + popoverHeight <= viewport.height + viewport.scrollY) {
+    return {
+      left: Math.max(viewport.scrollX, Math.min(rect.left + viewport.scrollX, viewport.width + viewport.scrollX - popoverWidth)),
+      top: rect.bottom + viewport.scrollY + margin
+    };
+  }
+
+  // Try top position
+  if (rect.top - margin - popoverHeight >= viewport.scrollY) {
+    return {
+      left: Math.max(viewport.scrollX, Math.min(rect.left + viewport.scrollX, viewport.width + viewport.scrollX - popoverWidth)),
+      top: rect.top + viewport.scrollY - margin - popoverHeight
+    };
+  }
+
+  // Fallback to right position (original behavior)
+  return {
+    left: rect.right + viewport.scrollX + margin,
+    top: rect.top + viewport.scrollY
+  };
+}
+
 document.addEventListener("mouseover", (e) => {
   if (!isEnabled) return;
 
@@ -26,15 +80,40 @@ document.addEventListener("mouseover", (e) => {
 
     popover.innerHTML = "";
 
-    new QRCode(popover, {
-      width: 128,
-      height: 128,
+    // Create QR code container
+    const qrContainer = document.createElement("div");
+    qrContainer.className = "qr-container";
+    
+    new QRCode(qrContainer, {
+      width: qrSize,
+      height: qrSize,
       text: currentAnchor
     });
 
+    // Create download button
+    const downloadBtn = document.createElement("button");
+    downloadBtn.className = "qr-download-btn";
+    downloadBtn.textContent = "ダウンロード";
+    downloadBtn.onclick = (event) => {
+      event.stopPropagation();
+      const canvas = qrContainer.querySelector("canvas");
+      if (canvas) {
+        const link = document.createElement("a");
+        link.download = "qrcode.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      }
+    };
+
+    popover.appendChild(qrContainer);
+    popover.appendChild(downloadBtn);
+
     const rect = target.getBoundingClientRect();
-    popover.style.left = `${rect.right + window.scrollX + 10}px`;
-    popover.style.top = `${rect.top + window.scrollY}px`;
+    const popoverSize = qrSize + 60; // QR size + padding + button
+    const position = getBestPosition(rect, popoverSize, popoverSize);
+    
+    popover.style.left = `${position.left}px`;
+    popover.style.top = `${position.top}px`;
     popover.style.display = "block";
   }
 });

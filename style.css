@@ -6,5 +6,25 @@
     z-index: 9999;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     display: none;
-  }
+    border-radius: 4px;
+}
+
+.qr-container {
+    margin-bottom: 8px;
+}
+
+.qr-download-btn {
+    width: 100%;
+    padding: 6px 12px;
+    background: #007cba;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.qr-download-btn:hover {
+    background: #005a87;
+}
   
