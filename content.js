@@ -5,6 +5,7 @@ document.body.appendChild(popover);
 let currentAnchor = null;
 let isEnabled = true;
 let qrSize = 192; // Increased default size from 128 to 192
+let hideTimeout = null;
 
 chrome.storage.sync.get(["qrEnabled", "qrSize"], (data) => {
   isEnabled = data.qrEnabled ?? true;
@@ -14,14 +15,23 @@ chrome.storage.sync.get(["qrEnabled", "qrSize"], (data) => {
 window.addEventListener("qr-toggle", (e) => {
   isEnabled = e.detail;
   if (!isEnabled) {
-    popover.style.display = "none";
-    popover.innerHTML = "";
+    hidePopover();
   }
 });
 
 window.addEventListener("qr-size-change", (e) => {
   qrSize = e.detail;
 });
+
+function hidePopover() {
+  popover.style.display = "none";
+  popover.innerHTML = "";
+  currentAnchor = null;
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+    hideTimeout = null;
+  }
+}
 
 function getBestPosition(rect, popoverWidth, popoverHeight) {
   const margin = 10;
@@ -76,6 +86,12 @@ document.addEventListener("mouseover", (e) => {
 
   const target = e.target.closest("a");
   if (target && target.href && target.href !== currentAnchor) {
+    // Clear any pending hide timeout
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+
     currentAnchor = target.href;
 
     popover.innerHTML = "";
@@ -122,8 +138,24 @@ document.addEventListener("mouseout", (e) => {
   if (!isEnabled) return;
 
   if (e.target.closest("a")) {
-    currentAnchor = null;
-    popover.style.display = "none";
-    popover.innerHTML = "";
+    // Delay hiding to allow user to move to popover
+    hideTimeout = setTimeout(() => {
+      hidePopover();
+    }, 300); // 300ms delay
   }
+});
+
+// Keep popover visible when mouse is over it
+popover.addEventListener("mouseenter", () => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+    hideTimeout = null;
+  }
+});
+
+// Hide popover when mouse leaves it
+popover.addEventListener("mouseleave", () => {
+  hideTimeout = setTimeout(() => {
+    hidePopover();
+  }, 100); // Short delay to prevent flickering
 });
