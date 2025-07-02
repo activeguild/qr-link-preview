@@ -21,7 +21,7 @@ document.addEventListener("mouseover", (e) => {
   if (!isEnabled) return;
 
   const target = e.target.closest("a");
-  if (target && target.href !== currentAnchor) {
+  if (target && target.href && target.href !== currentAnchor) {
     currentAnchor = target.href;
 
     popover.innerHTML = "";
