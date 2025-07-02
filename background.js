@@ -4,8 +4,14 @@ chrome.runtime.onInstalled.addListener(() => {
       title: "QRコード表示を切り替え",
       contexts: ["all"]
     });
+
+    chrome.contextMenus.create({
+      id: "qr-settings",
+      title: "QRコード設定",
+      contexts: ["all"]
+    });
   
-    chrome.storage.sync.set({ qrEnabled: true });
+    chrome.storage.sync.set({ qrEnabled: true, qrSize: 192 });
   });
   
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -21,6 +27,8 @@ chrome.runtime.onInstalled.addListener(() => {
         },
         args: [newState]
       });
+    } else if (info.menuItemId === "qr-settings") {
+      chrome.runtime.openOptionsPage();
     }
   });
   

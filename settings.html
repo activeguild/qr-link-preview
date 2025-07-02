@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Link Preview 設定</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .size-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .size-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .size-option input[type="radio"] {
+            margin: 0;
+        }
+        .save-status {
+            color: green;
+            font-size: 14px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .save-status.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Link Preview 設定</h1>
+    
+    <div class="setting-group">
+        <label>QRコードサイズ:</label>
+        <div class="size-options">
+            <div class="size-option">
+                <input type="radio" id="size-small" name="qrSize" value="128">
+                <label for="size-small">小 (128px × 128px)</label>
+            </div>
+            <div class="size-option">
+                <input type="radio" id="size-medium" name="qrSize" value="192">
+                <label for="size-medium">中 (192px × 192px)</label>
+            </div>
+            <div class="size-option">
+                <input type="radio" id="size-large" name="qrSize" value="256">
+                <label for="size-large">大 (256px × 256px)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="save-status" id="saveStatus">設定を保存しました</div>
+
+    <script src="settings.js"></script>
+</body>
+</html>
