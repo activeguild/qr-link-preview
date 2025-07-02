@@ -140,8 +140,14 @@ document.addEventListener("mouseout", (e) => {
   if (e.target.closest("a")) {
     // Delay hiding to allow user to move to popover
     hideTimeout = setTimeout(() => {
-      hidePopover();
-    }, 300); // 300ms delay
+      // Double-check if mouse is still not over the popover or any link
+      const isOverPopover = popover.matches(':hover');
+      const isOverLink = document.querySelector('a:hover');
+      
+      if (!isOverPopover && !isOverLink) {
+        hidePopover();
+      }
+    }, 500); // Increased delay to 500ms for better UX
   }
 });
 
@@ -157,5 +163,26 @@ popover.addEventListener("mouseenter", () => {
 popover.addEventListener("mouseleave", () => {
   hideTimeout = setTimeout(() => {
     hidePopover();
-  }, 100); // Short delay to prevent flickering
+  }, 200); // Slightly longer delay to prevent flickering
+});
+
+// Hide popover when clicking on any link (navigation)
+document.addEventListener("click", (e) => {
+  if (e.target.closest("a")) {
+    hidePopover();
+  }
+});
+
+// Hide popover on page navigation/unload
+window.addEventListener("beforeunload", () => {
+  hidePopover();
+});
+
+window.addEventListener("pagehide", () => {
+  hidePopover();
+});
+
+// Hide popover on SPA navigation (popstate)
+window.addEventListener("popstate", () => {
+  hidePopover();
 });
