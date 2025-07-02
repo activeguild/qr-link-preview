@@ -33,6 +33,111 @@ function hidePopover() {
   }
 }
 
+function showStockDialog(linkElement, qrContainer) {
+  // Get link text as default name
+  let defaultName = linkElement.textContent.trim();
+  if (!defaultName) {
+    defaultName = linkElement.href;
+  }
+  
+  // Create overlay
+  const overlay = document.createElement("div");
+  overlay.className = "qr-stock-overlay";
+  
+  // Create dialog
+  const dialog = document.createElement("div");
+  dialog.className = "qr-stock-dialog";
+  
+  const dialogContent = `
+    <h3>QRコードをストック</h3>
+    <div class="qr-stock-field">
+      <label for="qr-stock-name">名前:</label>
+      <input type="text" id="qr-stock-name" value="${defaultName}" maxlength="100">
+    </div>
+    <div class="qr-stock-buttons">
+      <button id="qr-stock-cancel">キャンセル</button>
+      <button id="qr-stock-save">保存</button>
+    </div>
+  `;
+  
+  dialog.innerHTML = dialogContent;
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  
+  // Focus on input and select text
+  const nameInput = dialog.querySelector("#qr-stock-name");
+  nameInput.focus();
+  nameInput.select();
+  
+  // Handle cancel
+  dialog.querySelector("#qr-stock-cancel").onclick = () => {
+    document.body.removeChild(overlay);
+  };
+  
+  // Handle save
+  dialog.querySelector("#qr-stock-save").onclick = async () => {
+    const name = nameInput.value.trim();
+    if (!name) {
+      alert("名前を入力してください");
+      return;
+    }
+    
+    const canvas = qrContainer.querySelector("canvas");
+    if (!canvas) {
+      alert("QRコードの生成に失敗しました");
+      return;
+    }
+    
+    try {
+      // Get existing stocks
+      const { qrStocks = [] } = await chrome.storage.sync.get("qrStocks");
+      
+      // Create new stock entry
+      const newStock = {
+        id: Date.now().toString(),
+        name: name,
+        url: currentAnchor,
+        qrData: canvas.toDataURL(),
+        createdAt: Date.now()
+      };
+      
+      // Add to stocks
+      qrStocks.push(newStock);
+      
+      // Save to storage
+      await chrome.storage.sync.set({ qrStocks });
+      
+      // Show success message
+      dialog.innerHTML = '<div class="qr-stock-success">QRコードを保存しました</div>';
+      
+      // Close dialog after delay
+      setTimeout(() => {
+        document.body.removeChild(overlay);
+      }, 1500);
+      
+    } catch (error) {
+      console.error("Stock save error:", error);
+      alert("保存に失敗しました");
+    }
+  };
+  
+  // Close on overlay click
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  };
+  
+  // Close on escape key
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      document.body.removeChild(overlay);
+      document.removeEventListener("keydown", handleKeyDown);
+    }
+  };
+  document.addEventListener("keydown", handleKeyDown);
+}
+
 function getBestPosition(rect, popoverWidth, popoverHeight) {
   const margin = 10;
   const viewport = {
@@ -106,6 +211,10 @@ document.addEventListener("mouseover", (e) => {
       text: currentAnchor
     });
 
+    // Create buttons container
+    const buttonsContainer = document.createElement("div");
+    buttonsContainer.className = "qr-buttons-container";
+
     // Create download button
     const downloadBtn = document.createElement("button");
     downloadBtn.className = "qr-download-btn";
@@ -121,8 +230,20 @@ document.addEventListener("mouseover", (e) => {
       }
     };
 
+    // Create stock button
+    const stockBtn = document.createElement("button");
+    stockBtn.className = "qr-stock-btn";
+    stockBtn.textContent = "ストック";
+    stockBtn.onclick = (event) => {
+      event.stopPropagation();
+      showStockDialog(target, qrContainer);
+    };
+
+    buttonsContainer.appendChild(downloadBtn);
+    buttonsContainer.appendChild(stockBtn);
+
     popover.appendChild(qrContainer);
-    popover.appendChild(downloadBtn);
+    popover.appendChild(buttonsContainer);
 
     const rect = target.getBoundingClientRect();
     const popoverSize = qrSize + 60; // QR size + padding + button
